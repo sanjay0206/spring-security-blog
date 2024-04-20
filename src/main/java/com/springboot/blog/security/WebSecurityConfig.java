@@ -24,7 +24,7 @@ import java.util.Collections;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
+public class WebSecurityConfig {
     private final JWTTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
     private final JWTConfig tokenConfig;
@@ -32,7 +32,11 @@ public class SecurityConfig {
     private final ObjectMapper mapper;
 
     @Autowired
-    public SecurityConfig(JWTTokenProvider tokenProvider, CustomUserDetailsService userDetailsService, JWTConfig tokenConfig, CookieConfig cookieConfig, ObjectMapper mapper) {
+    public WebSecurityConfig(CustomUserDetailsService userDetailsService,
+                             JWTTokenProvider tokenProvider,
+                             JWTConfig tokenConfig,
+                             CookieConfig cookieConfig,
+                             ObjectMapper mapper) {
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
         this.tokenConfig = tokenConfig;
