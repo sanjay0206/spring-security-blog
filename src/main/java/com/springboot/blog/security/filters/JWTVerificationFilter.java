@@ -59,7 +59,6 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
 
         log.info("Request URL: " + request.getRequestURL());
         try {
-
             if (!request.getRequestURI().equals("/api/v1/auth/signUp")) {
                 String authorizationHeader = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
                         .orElseThrow(() -> new BlogAPIException(HttpStatus.FORBIDDEN, "Authorization header not found."));
@@ -87,6 +86,7 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
                     }
                 }
             }
+
             // Go to next filter in chain
             filterChain.doFilter(request, response);
         } catch (Exception e) {
