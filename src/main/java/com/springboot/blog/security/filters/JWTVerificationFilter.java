@@ -1,7 +1,6 @@
 package com.springboot.blog.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.springboot.blog.exceptions.BlogAPIException;
 import com.springboot.blog.responses.ErrorDetailsResponse;
 import com.springboot.blog.security.CustomUserDetailsService;
@@ -14,7 +13,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -27,7 +25,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.springboot.blog.utils.AppConstants.URI;
@@ -40,18 +37,19 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private final JWTConfig tokenConfig;
     private final CookieConfig cookieConfig;
-    private final ObjectMapper MAPPER;
+    private final ObjectMapper mapper;
 
     @Autowired
-    public JWTVerificationFilter(JWTTokenProvider tokenProvider,
-                                 CustomUserDetailsService customUserDetailsService,
-                                 JWTConfig tokenConfig, CookieConfig cookieConfig,
-                                 ObjectMapper MAPPER) {
+    public JWTVerificationFilter(CustomUserDetailsService customUserDetailsService,
+                                 JWTTokenProvider tokenProvider,
+                                 JWTConfig tokenConfig,
+                                 CookieConfig cookieConfig,
+                                 ObjectMapper mapper) {
         this.tokenProvider = tokenProvider;
         this.customUserDetailsService = customUserDetailsService;
         this.tokenConfig = tokenConfig;
         this.cookieConfig = cookieConfig;
-        this.MAPPER = MAPPER;
+        this.mapper = mapper;
     }
 
     @Override
@@ -68,7 +66,7 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
                     .orElseThrow(() -> new BlogAPIException(HttpStatus.FORBIDDEN, "Login cookie not found."));
 
             String tokenPrefix = tokenConfig.getTokenPrefix();
-            String accessTokenFromAuthHeader = authorizationHeader.replace(tokenPrefix, "");
+            String accessTokenFromAuthHeader = authorizationHeader.replace(tokenPrefix, "").trim();
 
             if (accessTokenFromCookie.getValue().equals(accessTokenFromAuthHeader)) {
                 if (tokenProvider.isValidateToken(accessTokenFromAuthHeader)) {
@@ -91,8 +89,8 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
                     (LocalDateTime.now(), e.getMessage(), URI + request.getRequestURI());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-            MAPPER.writeValue(response.getWriter(), errorDetailsResponse);
+
+            mapper.writeValue(response.getWriter(), errorDetailsResponse);
         }
     }
 }

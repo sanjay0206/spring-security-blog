@@ -29,6 +29,6 @@ public class PostDto {
     @NotEmpty
     private String content;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String category;
 }

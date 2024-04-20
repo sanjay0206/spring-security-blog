@@ -1,7 +1,5 @@
 package com.springboot.blog.utils;
 
-import java.security.SecureRandom;
-
 public class AppConstants {
 
     public static final String DEFAULT_PAGE_NUMBER = "0";

@@ -1,15 +1,13 @@
 package com.springboot.blog.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.springboot.blog.dto.LoginDto;
 import com.springboot.blog.responses.JWTAccessTokenResponse;
+import com.springboot.blog.security.JWTTokenProvider;
 import com.springboot.blog.security.configs.CookieConfig;
 import com.springboot.blog.security.configs.JWTConfig;
-import com.springboot.blog.security.JWTTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,29 +31,21 @@ public class JWTUsernamePasswordAuthFilter extends UsernamePasswordAuthenticatio
     private final JWTConfig tokenConfig;
     private final JWTTokenProvider tokenProvider;
     private final CookieConfig cookieConfig;
-    private final ObjectMapper MAPPER;
+    private final ObjectMapper mapper;
 
     @Autowired
     public JWTUsernamePasswordAuthFilter(AuthenticationManager authenticationManager,
-                                         JWTConfig tokenConfig,
                                          JWTTokenProvider tokenProvider,
+                                         JWTConfig tokenConfig,
                                          CookieConfig cookieConfig,
-                                         ObjectMapper MAPPER) {
+                                         ObjectMapper mapper) {
         super(authenticationManager);
         this.authenticationManager = authenticationManager;
-        this.tokenConfig = tokenConfig;
         this.tokenProvider = tokenProvider;
+        this.tokenConfig = tokenConfig;
         this.cookieConfig = cookieConfig;
-        this.MAPPER = MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    }
-
-    @Bean
-    public JWTUsernamePasswordAuthFilter getJWTAuthenticationFilter() {
-        final JWTUsernamePasswordAuthFilter filter =
-                new JWTUsernamePasswordAuthFilter(authenticationManager, tokenConfig, tokenProvider, cookieConfig, MAPPER);
-        filter.setFilterProcessesUrl("/api/v1/auth/signIn");
-        filter.setAuthenticationManager(authenticationManager);
-        return filter;
+        this.mapper = mapper;
+        setFilterProcessesUrl("/api/v1/auth/signIn");
     }
 
     @Override
@@ -63,7 +53,7 @@ public class JWTUsernamePasswordAuthFilter extends UsernamePasswordAuthenticatio
                                                 HttpServletResponse response) throws AuthenticationException {
         Authentication authentication = null;
         try {
-            LoginDto loginDto = MAPPER.readValue(request.getInputStream(), LoginDto.class);
+            LoginDto loginDto = mapper.readValue(request.getInputStream(), LoginDto.class);
             log.info("Username is: {}", loginDto.getUsernameOrEmail());
             log.info("Password is: {}", loginDto.getPassword());
             authentication = new UsernamePasswordAuthenticationToken(loginDto.getUsernameOrEmail(),
@@ -96,6 +86,6 @@ public class JWTUsernamePasswordAuthFilter extends UsernamePasswordAuthenticatio
 
         // send JWT token to response body
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        MAPPER.writeValue(response.getWriter(), accessTokenResponse);
+        mapper.writeValue(response.getWriter(), accessTokenResponse);
     }
 }

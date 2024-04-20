@@ -1,6 +1,7 @@
 package com.springboot.blog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.springboot.blog.entities.Category;
 import com.springboot.blog.entities.Comment;
 import com.springboot.blog.entities.Post;
@@ -22,10 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SpringBootApplication
 @Slf4j
@@ -43,8 +41,11 @@ public class BlogApplication {
 
 	@Bean
 	public ObjectMapper objectMapper() {
-		return new ObjectMapper();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+		return mapper;
 	}
+
 
 	@Bean
 	CommandLineRunner commandLineRunner(UserRepository userRepository,

@@ -1,7 +1,6 @@
 package com.springboot.blog.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.springboot.blog.security.configs.CookieConfig;
 import com.springboot.blog.security.configs.JWTConfig;
 import com.springboot.blog.security.filters.JWTUsernamePasswordAuthFilter;
@@ -30,14 +29,15 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JWTConfig tokenConfig;
     private final CookieConfig cookieConfig;
-    private final ObjectMapper MAPPER;
+    private final ObjectMapper mapper;
+
     @Autowired
-    public SecurityConfig(JWTTokenProvider tokenProvider, CustomUserDetailsService userDetailsService, JWTConfig tokenConfig, CookieConfig cookieConfig, ObjectMapper MAPPER) {
+    public SecurityConfig(JWTTokenProvider tokenProvider, CustomUserDetailsService userDetailsService, JWTConfig tokenConfig, CookieConfig cookieConfig, ObjectMapper mapper) {
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
         this.tokenConfig = tokenConfig;
         this.cookieConfig = cookieConfig;
-        this.MAPPER = MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        this.mapper = mapper;
     }
 
     @Bean
@@ -52,12 +52,10 @@ public class SecurityConfig {
                 .addFilterAfter(getJWTVerificationFilter(), JWTUsernamePasswordAuthFilter.class)
                 .authorizeRequests()
                 .antMatchers("/", "index", "/css/*", "/js/*").permitAll()
-                .antMatchers("/api/v1/**").permitAll()
                 .antMatchers("/api/v1/auth/**").permitAll()
                 .anyRequest()
                 .authenticated().and().build();
     }
-
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -69,17 +67,17 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
+
         return new ProviderManager(Collections.singletonList(authProvider));
     }
 
     @Bean
     public JWTVerificationFilter getJWTVerificationFilter() {
-        return new JWTVerificationFilter(tokenProvider, userDetailsService, tokenConfig,  cookieConfig, MAPPER);
+        return new JWTVerificationFilter(userDetailsService, tokenProvider, tokenConfig,  cookieConfig, mapper);
     }
 
     @Bean
     public JWTUsernamePasswordAuthFilter getUsernamePasswordAuthFilter() {
-        return new JWTUsernamePasswordAuthFilter(authenticationManager(), tokenConfig, tokenProvider, cookieConfig, MAPPER)
-                .getJWTAuthenticationFilter();
+        return new JWTUsernamePasswordAuthFilter(authenticationManager(), tokenProvider, tokenConfig, cookieConfig, mapper);
     }
 }

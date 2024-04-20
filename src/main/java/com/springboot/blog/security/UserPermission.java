@@ -1,5 +1,8 @@
 package com.springboot.blog.security;
 
+import lombok.Getter;
+
+@Getter
 public enum UserPermission {
     POST_READ("SCOPE_post:read"),
     POST_UPDATE("SCOPE_post:update"),
@@ -27,7 +30,4 @@ public enum UserPermission {
         this.permission = permission;
     }
 
-    public String getPermission() {
-        return permission;
-    }
 }
