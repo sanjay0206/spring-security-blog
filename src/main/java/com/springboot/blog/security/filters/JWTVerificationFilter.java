@@ -56,30 +56,35 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws IOException {
+
+        log.info("Request URL: " + request.getRequestURL());
         try {
-            String authorizationHeader = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
-                    .orElseThrow(() -> new BlogAPIException(HttpStatus.FORBIDDEN, "Authorization header not found."));
 
-            Cookie accessTokenFromCookie = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
-                    .filter(cookie -> cookieConfig.getCookieName().equals(cookie.getName()))
-                    .findAny()
-                    .orElseThrow(() -> new BlogAPIException(HttpStatus.FORBIDDEN, "Login cookie not found."));
+            if (!request.getRequestURI().equals("/api/v1/auth/signUp")) {
+                String authorizationHeader = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
+                        .orElseThrow(() -> new BlogAPIException(HttpStatus.FORBIDDEN, "Authorization header not found."));
 
-            String tokenPrefix = tokenConfig.getTokenPrefix();
-            String accessTokenFromAuthHeader = authorizationHeader.replace(tokenPrefix, "").trim();
+                Cookie accessTokenFromCookie = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
+                        .filter(cookie -> cookieConfig.getCookieName().equals(cookie.getName()))
+                        .findAny()
+                        .orElseThrow(() -> new BlogAPIException(HttpStatus.FORBIDDEN, "Login cookie not found."));
 
-            if (accessTokenFromCookie.getValue().equals(accessTokenFromAuthHeader)) {
-                if (tokenProvider.isValidateToken(accessTokenFromAuthHeader)) {
-                    // Get username from token and load user details from user service
-                    String username = tokenProvider.getUsernameFromToken(accessTokenFromAuthHeader);
-                    log.info("username: {}", username);
-                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                    log.info("UserDetails: {}", userDetails);
+                String tokenPrefix = tokenConfig.getTokenPrefix();
+                String accessTokenFromAuthHeader = authorizationHeader.replace(tokenPrefix, "").trim();
 
-                    // Create and set authentication token using user details and authorities
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                if (accessTokenFromCookie.getValue().equals(accessTokenFromAuthHeader)) {
+                    if (tokenProvider.isValidateToken(accessTokenFromAuthHeader)) {
+                        // Get username from token and load user details from user service
+                        String username = tokenProvider.getUsernameFromToken(accessTokenFromAuthHeader);
+                        log.info("username: {}", username);
+                        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                        log.info("UserDetails: {}", userDetails);
+
+                        // Create and set authentication token using user details and authorities
+                        UsernamePasswordAuthenticationToken authenticationToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    }
                 }
             }
             // Go to next filter in chain
