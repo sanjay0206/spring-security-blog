@@ -34,7 +34,6 @@ public class PostController {
         return new ResponseEntity<>(postService.createPost(postDto, categoryId), HttpStatus.CREATED);
     }
 
-
     // get all posts rest api
     @PreAuthorize("hasAuthority('SCOPE_post:read')")
     @GetMapping("/api/v1/posts")
