@@ -83,6 +83,7 @@ public class PostController {
         tags.add("Pizza");
         tags.add("Italian Cuisine");
         postDtoV2.setTags(tags);
+
         return ResponseEntity.ok(postDtoV2);
     }
 
